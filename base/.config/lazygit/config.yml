@@ -1,0 +1,8 @@
+# lazygit's diff view through delta: syntax-highlighted, side-by-side-ready
+# diffs with clickable file/line links. delta comes from the git-delta package
+# declared in mise.toml.
+#
+# Remove this file (or the renderer entry) to use lazygit's built-in diff view.
+git:
+  diffRenderers:
+    - command: delta --dark --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"

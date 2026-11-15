@@ -8,8 +8,11 @@ A small, single-machine slice of my dotfiles for **Omarchy** (Arch Linux):
 | `base/.gitconfig` | `~/.gitconfig` | Basic git config for one account |
 | `base/.ssh/config` | `~/.ssh/config` | One GitHub host block |
 | `base/.config/gh/config.yml` | `~/.config/gh/config.yml` | GitHub CLI preferences (no credentials) |
+| `base/.config/lazygit/config.yml` | `~/.config/lazygit/config.yml` | lazygit diffs rendered by delta |
 
-`setup.sh` deploys all four and creates your GitHub SSH key if missing.
+`setup.sh` deploys all five, installs `lazydocker` and `git-delta`
+(`lazygit` already ships with Omarchy), and creates your GitHub SSH key if
+missing.
 
 The keybindings file is the stock Omarchy override template, unmodified: every
 Omarchy default works, and you add or change bindings in one place without
@@ -29,20 +32,24 @@ cd ~/dotfiles-share
 
 The script:
 
-1. Moves any existing real file out of the way to
+1. Installs the declared packages `lazydocker` and `git-delta` with
+   `mise bootstrap packages apply` (skipped when they are already present;
+   `lazygit` comes with Omarchy).
+2. Moves any existing real file out of the way to
    `~/.dotfiles-share-backup/<timestamp>/` (mise refuses to replace files it
    did not deploy).
-2. Symlinks the configs into `$HOME` with `mise dot apply`.
-3. Generates `~/.ssh/id_ed25519` if it does not exist yet and prints the public
+3. Symlinks the configs into `$HOME` with `mise dot apply`.
+4. Generates `~/.ssh/id_ed25519` if it does not exist yet and prints the public
    key.
-4. Loads the key into a running ssh-agent, if there is one.
+5. Loads the key into a running ssh-agent, if there is one.
 
-It is safe to re-run: deployed links, the backup step, and the key check all
-skip work that is already done. Only the four files listed at the top are
-touched.
+It is safe to re-run: package state, deployed links, the backup step, and the
+key check all skip work that is already done. Only the five files listed at the
+top are touched.
 
-Prefer to do it by hand? `mise trust` then `mise dot apply --yes`, and
-`ssh-keygen -t ed25519 -C "you@example.com"` for the key.
+Prefer to do it by hand? `mise trust`, `mise bootstrap packages apply`, then
+`mise dot apply --yes`, and `ssh-keygen -t ed25519 -C "you@example.com"` for
+the key.
 
 Check the result and remove the links later:
 

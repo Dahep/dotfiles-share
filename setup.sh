@@ -28,13 +28,21 @@ command -v git >/dev/null 2>&1 || die "git not found."
 
 # Files this repo owns under $HOME, relative to it.
 targets=(
-	.config/hypr/bindings.lua
 	.config/gh/config.yml
+	.config/hypr/bindings.lua
+	.config/lazygit/config.yml
 	.gitconfig
 	.ssh/config
 )
 
-# 1. Clear real files out of the way, keeping a copy. mise refuses to replace
+# 1. Install the declared packages (lazygit, lazydocker, git-delta). Skips the
+#    sudo prompt entirely when the set is already satisfied.
+if ! mise bootstrap packages status --missing >/dev/null 2>&1; then
+	printf 'Installing declared packages (needs sudo for pacman)...\n'
+	mise bootstrap packages apply
+fi
+
+# 2. Clear real files out of the way, keeping a copy. mise refuses to replace
 #    a path it did not deploy, and a user's existing ssh/git config is worth
 #    keeping. Links that already point into this checkout are left alone.
 backup_dir="$HOME/.dotfiles-share-backup/$(date +%Y%m%d-%H%M%S)"
@@ -51,11 +59,11 @@ for rel in "${targets[@]}"; do
 	conflicts=$((conflicts + 1))
 done
 
-# 2. Deploy the dotfile group.
+# 3. Deploy the dotfile group.
 mise trust --yes >/dev/null
 mise dot apply --yes
 
-# 3. Generate the GitHub SSH key when it does not exist yet.
+# 4. Generate the GitHub SSH key when it does not exist yet.
 key="$HOME/.ssh/id_ed25519"
 if [ -f "$key" ]; then
 	printf 'ssh key already exists, skipped: %s\n' "$key"
@@ -72,7 +80,7 @@ else
 	printf 'created ssh key: %s\n' "$key"
 fi
 
-# 4. Load the key into an agent that is already running (never start one here:
+# 5. Load the key into an agent that is already running (never start one here:
 #    it would die with this script). A missing agent is fine, ssh reads the
 #    key file directly.
 if [ -n "${SSH_AUTH_SOCK:-}" ]; then

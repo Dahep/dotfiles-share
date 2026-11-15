@@ -7,6 +7,14 @@
 [settings]
 dotfiles.root = "."
 
+# Packages needed by the configs. lazygit already ships with Omarchy; declared
+# here for the record, so a stripped-down box still gets it.
+[bootstrap.packages]
+"pacman:lazygit" = "latest"
+"pacman:lazydocker" = "latest"
+# delta renders lazygit's diff view (see base/.config/lazygit/config.yml).
+"pacman:git-delta" = "latest"
+
 [bootstrap]
 dotfile_groups = ["base"]
 
