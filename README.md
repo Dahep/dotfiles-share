@@ -9,6 +9,8 @@ A small, single-machine slice of my dotfiles for **Omarchy** (Arch Linux):
 | `base/.ssh/config` | `~/.ssh/config` | One GitHub host block |
 | `base/.config/gh/config.yml` | `~/.config/gh/config.yml` | GitHub CLI preferences (no credentials) |
 
+`setup.sh` deploys all four and creates your GitHub SSH key if missing.
+
 The keybindings file is the stock Omarchy override template, unmodified: every
 Omarchy default works, and you add or change bindings in one place without
 editing the defaults. Omarchy upgrades keep improving the defaults while your
@@ -16,19 +18,31 @@ overrides stay yours.
 
 ## Install
 
-Requires [Omarchy](https://omarchy.org) (which brings `mise`) and `git`.
+Requires [Omarchy](https://omarchy.org) (which brings `mise`), `git`, and
+`openssh`.
 
 ```sh
 git clone https://github.com/Dahep/dotfiles-share.git ~/dotfiles-share
 cd ~/dotfiles-share
-mise trust              # once per checkout
-mise dot apply --yes
+./setup.sh
 ```
 
-`mise dot apply` symlinks each file into place. If one of the targets already
-exists as a real file, mise refuses to overwrite it — back the file up (or
-delete it) and run the apply again. Nothing here touches anything else in
-`$HOME`.
+The script:
+
+1. Moves any existing real file out of the way to
+   `~/.dotfiles-share-backup/<timestamp>/` (mise refuses to replace files it
+   did not deploy).
+2. Symlinks the configs into `$HOME` with `mise dot apply`.
+3. Generates `~/.ssh/id_ed25519` if it does not exist yet and prints the public
+   key.
+4. Loads the key into a running ssh-agent, if there is one.
+
+It is safe to re-run: deployed links, the backup step, and the key check all
+skip work that is already done. Only the four files listed at the top are
+touched.
+
+Prefer to do it by hand? `mise trust` then `mise dot apply --yes`, and
+`ssh-keygen -t ed25519 -C "you@example.com"` for the key.
 
 Check the result and remove the links later:
 
@@ -47,16 +61,17 @@ mise dot unapply            # remove the deployed links
        email = you@example.com
    ```
 
-2. **SSH key for GitHub** — create one and add the public half at
-   <https://github.com/settings/keys>:
+2. **SSH key for GitHub** — `./setup.sh` creates `~/.ssh/id_ed25519` for you;
+   it also prints the public key. Add that key at
+   <https://github.com/settings/keys>, then check it:
 
    ```sh
-   ssh-keygen -t ed25519 -C "you@example.com"
    ssh -T git@github.com     # should greet you by username
    ```
 
    The repo's `~/.ssh/config` points at `~/.ssh/id_ed25519`. Using a different
-   key name? Change `IdentityFile` there.
+   key name? Change `IdentityFile` there. Want a passphrase on the key? Run
+   `ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519` yourself before `./setup.sh`.
 
 3. **GitHub CLI** — log in once; `gh auth login` stores the token in your OS
    keyring, not in this repo:
