@@ -93,9 +93,14 @@ cat "$key.pub"
 cat <<'EOF'
 
 Next steps:
-  1. Add the public key above to GitHub.
-  2. Set your identity in ~/.gitconfig (name and email are placeholders).
-  3. Log in to the GitHub CLI: gh auth login
+  1. Set your identity in ~/.gitconfig (name and email are placeholders).
+  2. Log in to the GitHub CLI:
+       gh auth login
+     Choose GitHub.com, SSH as the git protocol, and let it upload the key
+     when it offers.
+  3. If gh did not upload it, add the public key above to your account:
+       gh ssh-key add ~/.ssh/id_ed25519.pub --title "$(hostname)"
+     or paste it at https://github.com/settings/keys
   4. Test the key: ssh -T git@github.com
 EOF
 

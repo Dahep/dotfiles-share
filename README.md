@@ -58,9 +58,10 @@ mise dot status --missing   # exit 0 means everything is deployed
 mise dot unapply            # remove the deployed links
 ```
 
-## After installing
+## Finish setup
 
-1. **Git identity** — edit `~/.gitconfig` (or `base/.gitconfig` and re-apply):
+1. **Set your git identity** — edit `~/.gitconfig` (or `base/.gitconfig` and
+   re-apply). The committed values are placeholders:
 
    ```ini
    [user]
@@ -68,9 +69,42 @@ mise dot unapply            # remove the deployed links
        email = you@example.com
    ```
 
-2. **SSH key for GitHub** — `./setup.sh` creates `~/.ssh/id_ed25519` for you;
-   it also prints the public key. Add that key at
-   <https://github.com/settings/keys>, then check it:
+2. **Log in to the GitHub CLI** — `./setup.sh` printed your public key, but the
+   easiest path is to let `gh` upload it while you authenticate:
+
+   ```sh
+   gh auth login
+   ```
+
+   Choose **GitHub.com** → **SSH** as the git protocol. When it offers to
+   upload a public key, pick `~/.ssh/id_ed25519.pub`. Authenticate in the
+   browser when prompted. The token is stored in your OS keyring, never in this
+   repo.
+
+   ```sh
+   gh auth status            # shows the account and token scopes
+   ```
+
+   Already logged in, or prefer not to let `gh` touch the key? Add it yourself
+   (next step).
+
+3. **Add the generated SSH key to your GitHub account** — `./setup.sh` created
+   `~/.ssh/id_ed25519`; its public half is what GitHub needs.
+
+   With the CLI (already logged in):
+
+   ```sh
+   gh ssh-key add ~/.ssh/id_ed25519.pub --title "$(hostname)"
+   ```
+
+   Or in the browser: copy the key and paste it at
+   <https://github.com/settings/keys> → **New SSH key**:
+
+   ```sh
+   cat ~/.ssh/id_ed25519.pub
+   ```
+
+4. **Test the key**:
 
    ```sh
    ssh -T git@github.com     # should greet you by username
@@ -79,14 +113,6 @@ mise dot unapply            # remove the deployed links
    The repo's `~/.ssh/config` points at `~/.ssh/id_ed25519`. Using a different
    key name? Change `IdentityFile` there. Want a passphrase on the key? Run
    `ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519` yourself before `./setup.sh`.
-
-3. **GitHub CLI** — log in once; `gh auth login` stores the token in your OS
-   keyring, not in this repo:
-
-   ```sh
-   gh auth login
-   gh auth status
-   ```
 
 ## Add your own keybindings
 
@@ -113,6 +139,56 @@ omarchy menu keybindings --print
 Reload Hyprland to pick up changes (Super+Esc, then Relaunch), or edit the
 deployed file directly — it is a symlink into this checkout, so saving is the
 same as editing the repo.
+
+## Track more configs
+
+The repo takes whatever you put under `base/` and deploys it to the same path
+under `$HOME`. To start tracking a live file or directory:
+
+```sh
+# one file
+cp ~/.config/foo/bar.toml base/.config/foo/bar.toml
+git add base/.config/foo/bar.toml
+
+# a whole directory
+cp -r ~/.config/foo base/.config/foo
+git add base/.config/foo
+
+mise dot apply --yes
+mise dot status --missing   # exit 0 = deployed
+```
+
+`git add` is not optional: the group uses `manifest = "git"`, so deployment
+reads Git's index and an untracked file stays invisible.
+
+If the target already exists as a real file, `mise dot apply` refuses to
+replace it. Move it into `~/.dotfiles-share-backup/` first (or let `./setup.sh`
+do that on its next run). `--force` overwrites without a backup, so avoid it.
+
+To stop deploying something, remove it from the repo and prune the leftover
+link:
+
+```sh
+git rm base/.config/foo/bar.toml
+mise dot apply --prune
+```
+
+### Packages
+
+Declare tools in `mise.toml` and apply them:
+
+```toml
+[bootstrap.packages]
+"pacman:ripgrep" = "latest"
+```
+
+```sh
+mise bootstrap packages apply
+mise bootstrap packages status --missing   # exit 0 = installed
+```
+
+Official Arch repositories only (`pacman:` keys). An AUR-only package needs a
+different route, such as `yay -S --needed` by hand or a `github:` tool entry.
 
 ## How deployment works
 
