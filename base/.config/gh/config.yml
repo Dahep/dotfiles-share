@@ -1,0 +1,18 @@
+# gh CLI preferences. Authentication is not stored here: run `gh auth login`
+# once per machine and the token goes to the OS keyring (or an untracked
+# hosts.yml), never into this repo.
+version: 1
+git_protocol: ssh
+editor:
+prompt: enabled
+prefer_editor_prompt: disabled
+pager:
+aliases:
+    co: pr checkout
+http_unix_socket:
+browser:
+clipboard: enabled
+color_labels: disabled
+accessible_colors: disabled
+accessible_prompter: disabled
+spinner: enabled

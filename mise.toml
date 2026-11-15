@@ -1,0 +1,15 @@
+# What this checkout deploys into $HOME.
+#
+# `mise dot apply` reads this file when the command runs here. The `base` group
+# is a home-relative tree: every file below base/ lands at the same path under
+# ~/. Deployed files come from Git's index, so commit a file before applying
+# it.
+[settings]
+dotfiles.root = "."
+
+[bootstrap]
+dotfile_groups = ["base"]
+
+[dotfile_groups.base]
+root = "base"
+manifest = "git"

@@ -1,0 +1,32 @@
+# Single-account git config. Replace the identity placeholders below with your
+# own name and email, then commit.
+
+[user]
+	name = Your Name
+	email = you@example.com
+
+[init]
+	defaultBranch = main
+
+[pull]
+	rebase = true
+
+[core]
+	editor = nvim
+
+[color]
+	ui = auto
+
+[alias]
+	co = checkout
+	br = branch
+	ci = commit
+	st = status
+	lg = log --oneline --graph --decorate
+	last = log -1 HEAD
+
+# Optional: sign commits with the SSH key generated for GitHub (see README).
+# [commit]
+# 	gpgsign = true
+# [gpg]
+# 	format = ssh
